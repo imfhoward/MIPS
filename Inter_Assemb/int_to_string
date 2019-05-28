@@ -1,0 +1,59 @@
+.data 
+	orig_long: .word 100
+	num_bits: .word 100
+.text 
+	li $v0,5 #read input
+	syscall
+	sw $v0,orig_long
+	lw $t0,orig_long
+	
+	li $v0,5 #read input
+	syscall
+	sw $v0,num_bits
+	lw $t1,num_bits
+	
+	addi $t3, $t1, -1  #t3 is i
+	
+	#mul $t4,$t1,4
+	addi $t4,$t1,1 #t4 is return val
+	move $a0, $t4
+	li $v0,9
+	syscall
+	move $t9,$v0
+	move $s0,$t9
+	
+	addi $t6,$zero,1 #mask
+	addi $t7,$zero,1 #one
+	FOR:
+		blt $t3,0,print
+		addi $t3,$t3,-1
+		div $t2,$t3,32
+		mfhi $t2
+		beqz $t2,reset
+		and $t5,$t0,$t6
+		sll $t6,$t6,1
+		bgt $t5,0,one
+		beqz $t5,zero
+		j FOR
+	reset:
+		addi $t6,$zero,15
+		b FOR
+	one:
+		sb $t7,($t9)
+		addi $t9,$t9,1
+		b FOR
+	zero:
+		sb $zero,($t9)
+		addi $t9,$t9,1
+		b FOR
+		
+	print:
+		beq $t9,$s0,exit
+		sub $t9,$t9,1
+		li $v0,1
+		lb $a0,($t9)
+		syscall
+		j print
+	exit:
+		li $v0,10
+		syscall

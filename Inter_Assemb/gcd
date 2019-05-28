@@ -1,0 +1,59 @@
+.data
+	u:.word 0
+	v:.word 0
+.text
+	li $v0,5 #read input
+	syscall
+	sw $v0,u
+	lw $t0,u
+	
+	li $v0,5 #read input
+	syscall
+	sw $v0,v
+	lw $t1,v
+	
+	beqz $t0,exit
+	beqz $t1,exit
+	
+	addi $t2,$zero,0 #t2 is shift
+	For1:
+		and $t3,$t0,1
+		beq $t3,1,while
+		and $t3,$t1,1
+		beq $t3,1,while
+		addi $t2,$t2,1
+		srl $t0,$t0,1
+		srl $t1,$t1,1
+		j For1
+		
+	while:
+		and $t3,$t0,1
+		bnez $t3,while2
+		srl $t0,$t0,1
+		j while
+
+	while2:
+		and $t3,$t1,1
+		bnez $t3,ifelse
+		srl $t1,$t1,1
+		j while2
+	
+	ifelse:
+		ble $t0,$t1,inif
+		bgt $t0,$t1,inelse
+	inif:
+		sub $t1,$t1,$t0
+		b shiftandnext
+	inelse:
+		sub $t4,$t0,$t1
+		addi $t0,$t1,0
+		addi $t1,$t4,0
+		b shiftandnext
+	shiftandnext:
+		srl $t1,$t1,1
+		bnez $t2,while2
+		beqz $t2,exit
+	exit:
+		sllv $t0,$t0,$t2
+		li $v0,10
+		syscall

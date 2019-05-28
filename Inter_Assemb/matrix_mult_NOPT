@@ -1,0 +1,260 @@
+.data
+	mcol: .word 0
+	mrow: .word 0
+	ncol: .word 0	
+	nrow: .word 0
+	note: .asciiz "second matrix\n"
+	note1: .asciiz "first matrix\n"
+.text 
+	li $v0,5 #read input
+	syscall
+	sw $v0,mcol
+	lw $s0,mcol
+	
+	li $v0,5 #read input
+	syscall
+	sw $v0,mrow
+	lw $s1,mrow
+	
+	li $v0,5 #read input
+	syscall
+	sw $v0,ncol
+	lw $s2,ncol
+	
+	li $v0,5 #read input
+	syscall
+	sw $v0,nrow
+	lw $s3,nrow
+	
+	bne  $s3,$s0,exit
+	
+	addi $t0,$zero,0 #t0 is i
+	addi $t1,$zero,0 #t1 is j
+#####################################    r_m    #######################################
+	mul $t2,$s2,4 #t2 is size of r_m
+	move $a0, $t2
+	li $v0,9
+	syscall
+	move $a3,$v0 #s4 have address of r_m 1st pointer
+	move $s4,$a3
+	
+	rm:
+		bge $t0,$s2,reset
+		addi $t0,$t0,1
+		mul $t9,$s1,4 #t7 is size of r_m[i]
+		move $a0,$t9
+		li $v0,9
+		syscall
+		move $a0,$v0
+		sw $a0,($a3)
+		addi $a3,$a3,4
+		j rm
+		
+#####################################    M    #######################################	
+
+	reset:
+		addi $t0,$zero,0 #t0 is i
+		addi $t1,$zero,0 #t1 is j
+		j aloM		
+	aloM:
+		mul $t2,$s0,4 #t2 is size of m
+		move $a0, $t2
+		li $v0,9
+		syscall
+		move $a2,$v0 #s5 have address of r_m 1st pointer
+		move $s5,$a2
+		j aloMM
+	
+	aloMM:
+		bge $t0,$s0,resetm
+		addi $t0,$t0,1
+		mul $t9,$s1,4 #t7 is size of r_m[i]
+		move $a0,$t9
+		li $v0,9
+		syscall
+		move $a0,$v0
+		sw $a0,($a2)
+		addi $a2,$a2,4
+		j aloMM
+		
+#####################################    N    #######################################		
+	resetm:
+		addi $t0,$zero,0 #t0 is i
+		addi $t1,$zero,0 #t1 is j
+		j aloN
+		
+		
+	aloN:
+		mul $t2,$s2,4 #t2 is size of m
+		move $a0, $t2
+		li $v0,9
+		syscall
+		move $a1,$v0 #s4 have address of r_m 1st pointer
+		move $s6,$a1
+		j aloNN
+	
+	aloNN:
+		bge $t0,$s2,reset4Readm
+		addi $t0,$t0,1
+		mul $t9,$s3,4 #t7 is size of r_m[i]
+		move $a0,$t9
+		li $v0,9
+		syscall
+		move $a0,$v0
+		sw $a0,($a1)
+		addi $a1,$a1,4
+		j aloNN
+		
+#####################################  Mem Allo done   #######################################
+
+
+#####################################  Read in M from user   #######################################
+	reset4Readm:
+		li $v0,4
+		la $a0,note1
+		syscall
+		addi $t0,$zero,0 #t0 is i
+		addi $t1,$zero,0 #t1 is j
+		j Readm
+		
+	Readm:
+		bge $t0,$s0,reset4Readn
+		addi $t1,$zero,0 #reset j
+		j Readmloop
+		
+	Readmloop:
+		bge $t1,$s1,endReadm
+		li $v0,5 #read input
+		syscall
+		mul $t8,$t0,4 #i*4
+		mul $t9,$t1,4 #j*4
+		
+		addi $t7,$s5,0
+		add $t7,$t7,$t8
+		lw $t7,($t7) #save address of $s3 to $t
+		add $t7,$t7,$t9
+		sw $v0,($t7)
+		
+		addi $t1,$t1,1
+		j Readmloop
+
+	endReadm:
+		addi $t0,$t0,1 #i++
+		j Readm
+		
+#####################################  Read in N from user   #######################################
+	reset4Readn:
+		li $v0,4
+		la $a0,note
+		syscall
+		addi $t0,$zero,0 #t0 is i
+		addi $t1,$zero,0 #t1 is j
+		j Readn
+		
+	Readn:
+		bge $t0,$s2,reset4Cal
+		addi $t1,$zero,0 #reset j
+		j Readnloop
+		
+	Readnloop:
+		bge $t1,$s3,endReadn
+		li $v0,5 #read input
+		syscall
+		mul $t8,$t0,4 #i*4
+		mul $t9,$t1,4 #j*4
+		
+		addi $t7,$s6,0
+		add $t7,$t7,$t8
+		lw $t7,($t7) #save address of $s3 to $t
+		add $t7,$t7,$t9
+		sw $v0,($t7)
+		
+		addi $t1,$t1,1
+		j Readnloop
+
+	endReadn:
+		addi $t0,$t0,1 #i++
+		j Readn
+#####################################  Done reading   #######################################
+	reset4Cal:
+		addi $t0,$zero,0 #t0 is i
+		addi $t1,$zero,0 #t1 is j
+		addi $t2,$zero,0 #t1 is k
+		j cal
+		
+	cal:
+		bge $t0,$s2,exit
+		addi $t1,$zero,0 #reset j
+		j calloop
+		
+	calloop:
+		bge $t1,$s1,endcal
+		addi $t2,$zero,0 #reset k
+		mul $t8,$t0,4 #i*4
+		mul $t9,$t1,4 #j*4
+		addi $t7,$s4,0
+		addi $t6,$zero,0
+		add $t7,$t7,$t8
+		lw $t7,($t7) #save address of $s3 to $t
+		add $t7,$t7,$t9
+		sw $zero,($t7)
+		j kloop
+		
+	kloop:
+		bge $t2,$s3,endcalloop
+		mul $t8,$t0,4 #i*4
+		mul $t9,$t1,4 #j*4
+		mul $t3,$t2,4 #k*4
+		
+		addi $t4,$s5,0
+		add $t4,$t4,$t3
+		lw $t4,($t4) #save address of $s3 to $t
+		add $t4,$t4,$t9
+		lw $s7,($t4)
+		
+		addi $t5,$s6,0
+		add $t5,$t5,$t8
+		lw $t5,($t5) #save address of $s3 to $t
+		add $t5,$t5,$t3
+		lw $k0,($t5)
+		
+		mul $k1,$k0,$s7
+		add $t6,$t6,$k1
+		sw $t6,($t7)
+		addi $t2,$t2,1 #K++
+		
+		j kloop
+		
+	endcalloop:
+		addi $t1,$t1,1 #j++
+		j calloop
+		
+	endcal:
+		addi $t0,$t0,1 #i++
+		j cal
+#####################################  Done  #######################################			
+	exit:
+		li $v0 10
+		syscall
+		
+		
+		
+		
+		
+		
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		

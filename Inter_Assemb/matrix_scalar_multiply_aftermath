@@ -1,0 +1,109 @@
+.data 
+	col: .word 0
+	row: .word 0
+	scalar: .word 0
+.text 
+	li $v0,5 #read input
+	syscall
+	sw $v0,col
+	lw $s1,col
+	
+	li $v0,5 #read input
+	syscall
+	sw $v0,row
+	lw $s2,row
+
+	li $v0,5 #read input
+	syscall
+	sw $v0,scalar
+	lw $t3,scalar
+	
+	addi $t4,$zero,0 #t4 is i
+	addi $t5,$zero,0 #t5 is j
+	
+	mul $t6,$s1,4 #t6 is size of r_m
+	move $a0, $t6
+	li $v0,9
+	syscall
+	move $a1,$v0
+	move $s3,$a1    #s3 have first a1
+
+	
+	For:
+		bge $t4,$s1,reseti
+		addi $t4,$t4,1
+		mul $t7,$s2,4 #t7 is size of r_m[i]
+		move $a0, $t7
+		li $v0,9
+		syscall
+		move $a0,$v0
+		sw $a0,($a1)
+		addi $a1,$a1,4
+		j For
+		
+		#dont need t7
+	
+	reseti:
+		addi $t4,$zero,0
+		j Readin
+	
+	Readin:
+		bge $t4,$s1,resetall
+		move $a1,$s3#reset a1
+		addi $t5,$zero,0 #reset j
+		j readloop
+		
+	readloop:
+		bge $t5,$s2,endReadin
+		li $v0,5 #read input
+		syscall
+		mul $t0,$t4,4 #i*4
+		mul $t1,$t5,4 #j*4
+		
+		addi $t8,$s3,0
+		add $t8,$t8,$t0
+		lw $t8,($t8) #save address of $s3 to $t
+		add $t8,$t8,$t1
+		sw $v0,($t8)
+		addi $t5,$t5,1
+		j readloop
+
+	endReadin:
+		addi $t4,$t4,1 #i++
+		j Readin
+		
+	resetall:
+		addi $t4,$zero,0 #reset
+		addi $t5,$zero,0 #reset
+		move $a1,$s3
+		j math
+	
+	math:
+		bge $t4,$s1,exit
+		addi $t5,$zero,0
+		j mathloop
+		
+	mathloop:
+		bge $t5,$s2,endmath
+		mul $t0,$t4,4 #i*4
+		mul $t1,$t5,4 #j*4
+		
+		addi $t8,$s3,0
+		add $t8,$t8,$t0
+		lw $t8,($t8) #save address of $s3 to $t
+		add $t8,$t8,$t1
+		lw $t7,($t8)
+		mul $t7,$t7,$t3
+		sw $t7,($t8)
+		addi $t5,$t5,1
+		j mathloop
+		
+	endmath:
+		addi $t4,$t4,1 #i++
+		j math
+	exit:
+		li $v0 10
+		syscall
+		
+		
+	
